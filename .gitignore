@@ -1,0 +1,14 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+
+
+# Secrets
+.env
+*.pem
+id_rsa*
+id_ed25519*
+
+# OS
+.DS_Store
