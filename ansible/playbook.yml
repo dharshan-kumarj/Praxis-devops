@@ -1,0 +1,50 @@
+- name: Configure VM and deploy OpenWebUI (CLI-based, SDK-free)
+  hosts: openwebui
+  become: yes
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install base packages
+      apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+
+    - name: Install Docker
+      shell: |
+        curl -fsSL https://get.docker.com | sh
+      args:
+        creates: /usr/bin/docker
+
+    - name: Enable and start Docker
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+
+    - name: Copy OpenWebUI env file
+      copy:
+        src: .env
+        dest: /home/azureuser/openwebui.env
+        owner: azureuser
+        group: azureuser
+        mode: '0600'
+
+    - name: Remove existing OpenWebUI container if present
+      shell: |
+        docker rm -f openwebui || true
+
+    - name: Run OpenWebUI container (Docker CLI)
+      shell: |
+        docker run -d \
+          --name openwebui \
+          --restart always \
+          -p 3000:8080 \
+          --env-file /home/azureuser/openwebui.env \
+          ghcr.io/open-webui/open-webui:latest
